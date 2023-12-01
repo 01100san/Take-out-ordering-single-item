@@ -1,5 +1,5 @@
 # my filter
-*.yml
+application.yml
 target
 .idea
 reggie_take_out.iml
