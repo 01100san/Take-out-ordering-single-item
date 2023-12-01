@@ -1,4 +1,5 @@
 /target/
+.yml
 # Compiled class file
 *.class
 
