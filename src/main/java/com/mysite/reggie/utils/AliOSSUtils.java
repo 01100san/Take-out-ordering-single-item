@@ -22,7 +22,7 @@ public class AliOSSUtils {
 //    private String accessKeyId;
 //    @Value("${aliyun.oss.accessKeySecret}")
 //    private String accessKeySecret;
-//    @Value("${aliyun.oss.bucketName}")  //reggie-takeout-zhl
+//    @Value("${aliyun.oss.bucketName}")
 //    private String bucketName ;
 
     //获取注入AliOSSProperties 的Bean对象
