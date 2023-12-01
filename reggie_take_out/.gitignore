@@ -1,5 +1,5 @@
 # my filter
-.yml
+src/main/resources/application.yml
 target
 .idea
 reggie_take_out.iml
