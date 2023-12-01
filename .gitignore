@@ -1,7 +1,6 @@
 # my filter
-/target/
 .yml
-
+target
 # Compiled class file
 *.class
 
