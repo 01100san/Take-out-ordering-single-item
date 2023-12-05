@@ -2,6 +2,7 @@ package com.mysite.reggie.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mysite.reggie.dto.SetmealDto;
 import com.mysite.reggie.entity.Category;
@@ -15,6 +16,7 @@ import com.mysite.reggie.service.CategoryService;
 import com.mysite.reggie.service.SetmealDishService;
 import com.mysite.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * ClassName: SetmealServiceImpl
@@ -38,7 +41,53 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
     @Autowired
     private SetmealDishService setmealDishService;
     @Autowired
-    private SetmealMapper setmealMapper;
+    private CategoryService categoryService;
+
+    @Override
+    public Page<SetmealDto> pageSetmealDto(Integer currentPage, Integer pageSize, String name) {
+        Page<Setmeal> setmealPage = new Page<>(currentPage,pageSize);
+        //先声明一个Page<SetmealDto>的变量，可以不赋currentPage和pageSize值，之后会把Page<Setmeal>的属性值赋给setmealDtoPage
+        Page<SetmealDto> setmealDtoPage = new Page<>();
+
+        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.isNotEmpty(name),Setmeal::getName,name)
+                .orderByAsc(Setmeal::getUpdateTime);
+        //分页查询查找到了setmeal对应的值setmeals。
+        this.page(setmealPage,queryWrapper);
+
+        //不能直接将setmeals的记录值直接赋给 records，我先将currentPage和pageSize值赋给re
+        BeanUtils.copyProperties(setmealPage,setmealDtoPage,"records");
+
+        List<Setmeal> setmeals = setmealPage.getRecords();
+
+        //根据categoryId设置categoryName
+        List<SetmealDto> records = setmeals.stream().map((Setmeal setmeal) -> {
+            SetmealDto setmealDto = new SetmealDto();
+            //把setmeal的属性赋给setmealDto
+            BeanUtils.copyProperties(setmeal,setmealDto);
+            Long categoryId = setmealDto.getCategoryId();
+            Category category = categoryService.getById(categoryId);
+            if (category != null){
+                setmealDto.setCategoryName(category.getName());
+            }
+            return setmealDto;
+        }).collect(Collectors.toList());
+
+        //为setmealDtoPage中的records赋值
+        setmealDtoPage.setRecords(records);
+        //前端页面想要展示categoryName套餐分类的值，但是在setmeal中只有categoryId值。
+        //通过为setmealDto中的categoryName赋值即可得到
+        //最后返回给前端的数据是setmealDtoPage,即setmealDto对象,所以要给setmealDtoPage的categoryName赋值，为records集合赋值
+        return setmealDtoPage;
+    }
+
+    @Override
+    public List<Setmeal> listSetmeals(Long categoryId, Integer status) {
+        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(status != null,Setmeal::getStatus,1)
+                .eq(Setmeal::getCategoryId,categoryId);
+        return this.list(queryWrapper);
+    }
 
     /**
      * 在category表中，是菜品种类和套餐种类的分类表，setmeal是针对某种套餐种类categoryId的具体套餐
@@ -151,9 +200,6 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
     @Override
     public void updateByIdWithStatus(Integer status, List<Long> ids) {
-        /*for (Long id : ids){
-            setmealMapper.updateStatusById(status,id);
-        }*/
         UpdateWrapper<Setmeal> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status",status).in("id",ids);
         this.update(updateWrapper);

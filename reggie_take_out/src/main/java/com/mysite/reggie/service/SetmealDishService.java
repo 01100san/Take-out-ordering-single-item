@@ -1,7 +1,10 @@
 package com.mysite.reggie.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.mysite.reggie.dto.DishDto;
 import com.mysite.reggie.entity.SetmealDish;
+
+import java.util.List;
 
 /**
  * ClassName: SetmealDishService
@@ -13,4 +16,5 @@ import com.mysite.reggie.entity.SetmealDish;
  * version 1.0
  */
 public interface SetmealDishService extends IService<SetmealDish> {
+    List<DishDto> listSetmealDishes(Long id);
 }

@@ -1,5 +1,6 @@
 package com.mysite.reggie.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mysite.reggie.dto.SetmealDto;
 import com.mysite.reggie.entity.Setmeal;
@@ -25,4 +26,8 @@ public interface SetmealService extends IService<Setmeal> {
     void removeByIdWithDishes(List<Long> ids);
 
     void updateByIdWithStatus(Integer status, List<Long> ids);
+
+    Page<SetmealDto> pageSetmealDto(Integer currentPage, Integer pageSize, String name);
+
+    List<Setmeal> listSetmeals(Long categoryId, Integer status);
 }

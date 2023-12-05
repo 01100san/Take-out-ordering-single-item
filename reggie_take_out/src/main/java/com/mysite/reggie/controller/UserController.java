@@ -57,6 +57,7 @@ public class UserController {
             userService.save(user);
         }
         session.setAttribute("user", user.getId());
+        //用户登录成功，删除redis中的验证码缓存
         stringRedisTemplate.delete(phone);
         return R.success(user);
         //}
