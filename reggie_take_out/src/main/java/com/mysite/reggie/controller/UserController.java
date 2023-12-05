@@ -36,7 +36,6 @@ import java.util.Map;
             //把phone做为session
             //将生成的验证码保存到session
             session.setAttribute(phone,code);
-
             /*if (session.getAttribute("phone").equals(phone)){*/
             LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(User::getPhone,phone);
