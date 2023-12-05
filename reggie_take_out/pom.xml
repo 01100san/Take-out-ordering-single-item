@@ -22,7 +22,16 @@
     </properties>
 
     <dependencies>
-
+        <!--redis-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!--commons-pool2-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
         <!--阿里云 oss的依赖-->
         <!--我使用的jdk8，所以只导入了一个maven坐标-->
         <dependency>

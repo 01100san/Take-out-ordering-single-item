@@ -29,15 +29,15 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         //如果管理端用户已登录，放行
-        if (request.getSession().getAttribute("employee") != null){
-            log.info("管理端员工已登录,员工id为：{}",request.getSession().getAttribute("employee"));
+        if (request.getSession().getAttribute("employee") != null) {
+            log.info("管理端员工已登录,员工id为：{}", request.getSession().getAttribute("employee"));
             Long id = (Long) request.getSession().getAttribute("employee");
             BaseContext.setCurrentId(id);
             return true;
         }
         //如果移动端用户已登录，放行
-        if (request.getSession().getAttribute("user") != null){
-            log.info("移动端用户已登录,用户id为：{}",request.getSession().getAttribute("user"));
+        if (request.getSession().getAttribute("user") != null) {
+            log.info("移动端用户已登录,用户id为：{}", request.getSession().getAttribute("user"));
             Long userId = (Long) request.getSession().getAttribute("user");
             BaseContext.setCurrentId(userId);
             return true;
