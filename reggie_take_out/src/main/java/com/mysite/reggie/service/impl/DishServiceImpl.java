@@ -1,9 +1,12 @@
 package com.mysite.reggie.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysite.reggie.common.R;
 import com.mysite.reggie.dto.DishDto;
 import com.mysite.reggie.entity.Category;
@@ -14,13 +17,21 @@ import com.mysite.reggie.mapper.DishMapper;
 import com.mysite.reggie.service.CategoryService;
 import com.mysite.reggie.service.DishFlavorService;
 import com.mysite.reggie.service.DishService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -32,12 +43,14 @@ import java.util.stream.Collectors;
  * @Create 2023/11/25 12:37
  * version 1.0
  */
+@Slf4j
 @Service
 public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements DishService {
     @Autowired
     private DishFlavorService dishFlavorService;
     @Autowired
     private CategoryService categoryService;
+
 
     @Override
     public Page<DishDto> pageDishDto(Integer currentPage, Integer pageSize, String name) {
@@ -196,6 +209,17 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         Long categoryId = dish.getCategoryId();
         Integer status = dish.getStatus();
         String dishName = dish.getName();
+        //设置key
+        //对用户端不同种类的菜品进行分类
+        /*String key = "dish_" + categoryId + "_" + status;
+        //先从redis中获取缓存数据
+        dishDtos = (List<DishDto>) redisTemplate.opsForValue().get(key);
+        //如果存在，直接返回，无需查询数据库
+        //return dishDtos =(List<DishDto>) stringRedisTemplate.opsForValue().get(key);
+        if (dishDtos != null) {
+            return dishDtos;
+        }*/
+
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(categoryId != null,Dish::getCategoryId,categoryId)
                 .eq(status != null,Dish::getStatus,1)
@@ -220,7 +244,8 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             dishDto.setFlavors(flavors);
             return dishDto;
         }).collect(Collectors.toList());
-
+        //如果不存在，需要查询数据库，将查询到的菜品数据缓存到Redis
+        /*redisTemplate.opsForValue().set(key,dishDtos,60, TimeUnit.MINUTES);*/
         return dishDtos;
     }
 }

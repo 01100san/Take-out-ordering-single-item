@@ -61,8 +61,6 @@ public class CategoryController {
     @DeleteMapping
     public R<String> deleteCategory(@RequestParam Long ids){
         log.info("需要删除的菜品或套餐的id为：{}",ids);
-
-        //categoryService.removeById(ids);
         categoryService.remove(ids);
         return R.success("分类信息删除成功");
     }

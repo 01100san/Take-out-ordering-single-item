@@ -25,7 +25,8 @@
                 <el-input placeholder=" 请输入手机号码" v-model="form.phone"  maxlength='20'/></el-input>
                 <div class="divSplit"></div>
                 <el-input placeholder=" 请输入验证码" v-model="form.code"  maxlength='20'/></el-input>
-                <span @click='getCode'>获取验证码</span>
+                <!--<span @click='getCode'>获取验证码</span>-->
+                <span @click='getCode' :disabled='isGettingCode'>{{buttonText}}</span>
             </div>
             <div class="divMsg" v-if="msgFlag">手机号输入不正确，请重新输入</div>
             <el-button type="primary" :class="{btnSubmit:1===1,btnNoPhone:!form.phone,btnPhone:form.phone}" @click="btnLogin">登录</el-button>
@@ -51,7 +52,10 @@
                         code:''
                     },
                     msgFlag:false,
-                    loading:false
+                    loading:false,
+                    isGettingCode: false, //控制获取验证码按钮的禁用状态
+                    codeCountdown: 300,   //验证码倒计时
+                    buttonText: '获取验证码',  //获取验证码按钮上的文字
                 }
             },
             computed:{},
@@ -64,8 +68,32 @@
                     if (regex.test(this.form.phone)) {
                         //手机号输入正确
                         this.msgFlag = false
+
+                        if (this.isGettingCode){
+                            //如果正在进行倒计时，不执行后续操作
+                            return;
+                        }
+
+                        //发送验证码
+                        sendMsgApi({phone:this.form.phone})
+
+                        //开始倒计时
+                        this.isGettingCode = true;
+                        let countdown = this.codeCountdown;
+                        this.buttonText = `请在${countdown}s内填写验证码`;  //更新按钮上的文字
+                        const timer = setInterval(()=>{
+                            countdown --;
+                            if (countdown === 0){
+                                //倒计时结束，恢复初始状态
+                                this.isGettingCode = false;
+                                this.buttonText = '获取验证码';  //更新按钮上的文字
+                                clearInterval(timer);
+                            }else {
+                                this.buttonText = `请在${countdown}s内填写验证码`;  //更新按钮上的文字
+                            }
+                        },1000);
                         //随机生成的验证码
-                        this.form.code = (Math.random()*1000000).toFixed(0)
+                        //this.form.code = (Math.random()*1000000).toFixed(0)
                     }else{
                         this.msgFlag = true
                     }

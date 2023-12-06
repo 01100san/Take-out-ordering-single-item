@@ -54,7 +54,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
             //已经关联套餐，抛出业务异常
             throw new SetmealBindException("删除失败-_-|，当前的套餐分类中，包含的套餐有："+setMealCount +"种");
         }
-
         //正在删除分类
         super.removeById(id);
     }

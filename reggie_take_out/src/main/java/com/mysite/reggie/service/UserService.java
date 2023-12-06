@@ -13,4 +13,5 @@ import com.mysite.reggie.entity.User;
  * version 1.0
  */
 public interface UserService extends IService<User> {
+    User checkOrSave(String phone);
 }
