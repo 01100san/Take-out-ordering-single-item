@@ -45,7 +45,7 @@ public class UserController {
     private String templateCode;
 
     @PostMapping("/sendMsg")
-    public R<String> sendMsg(@RequestBody User user,HttpSession session){
+    public R<String> sendMsg(@RequestBody User user){
         String phone = user.getPhone();
         if (StringUtils.isNotEmpty(phone)){
             //随机4位生成验证码
