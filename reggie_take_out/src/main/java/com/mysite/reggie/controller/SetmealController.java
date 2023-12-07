@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -54,11 +57,9 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> saveSetmeal(@RequestBody SetmealDto setmealDto){
         setmealService.saveWithDish(setmealDto);
-        //清理所有套餐的缓存数据
-        Set keys = redisTemplate.keys("setmeal*");
-        redisTemplate.delete(keys);
         return R.success("添加成功");
     }
 
@@ -82,29 +83,25 @@ public class SetmealController {
     }
 
     @PutMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> editSetmealDto(@RequestBody SetmealDto setmealDto){
         setmealService.updateByIdWithDishes(setmealDto);
-        //清理所有套餐的缓存数据
-        Set keys = redisTemplate.keys("setmeal*");
-        redisTemplate.delete(keys);
         return R.success("修改成功");
     }
-
     @DeleteMapping
+    //删除当前value中的所有缓存
+    @CacheEvict(value = "setmealCache", allEntries = true)
+    //这里的ids 是setmealId不是存入Redis中的categoryId，所以不能根据ids删除缓存，建议删除所有
+    //@CacheEvict(value = "setmealCache", key = "#ids")
     public R<String> deleteSetmeal(@RequestParam("ids") List<Long> ids){
         setmealService.removeByIdWithDishes(ids);
-        //清理所有套餐的缓存数据
-        Set keys = redisTemplate.keys("setmeal*");
-        redisTemplate.delete(keys);
         return R.success("删除成功");
     }
 
     @PostMapping("/status/{status}")
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> statusSetmeal(@PathVariable Integer status,@RequestParam("ids") List<Long> ids){
         setmealService.updateByIdWithStatus(status,ids);
-        //清理所有套餐的缓存数据
-        Set keys = redisTemplate.keys("setmeal*");
-        redisTemplate.delete(keys);
         return R.success("状态修改成功");
     }
 
@@ -116,20 +113,9 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "setmealCache", key = "#categoryId + '_' + #status", unless = "#result == null")
     public R<List<Setmeal>> list(@RequestParam Long categoryId, @RequestParam Integer status){
-        //1.定义套餐key
-        String key = "setmeal_" + categoryId + "_" + status;
-        //2.先从Redis中查询是否存在
-        List<Setmeal> setmeals = (List<Setmeal>) redisTemplate.opsForValue().get(key);
-        //3.如果存在，直接返回
-        if (setmeals != null){
-            //设置缓存的有效期不变仍为60分钟
-            redisTemplate.expire(key,60,TimeUnit.MINUTES);
-            return R.success(setmeals);
-        }
-        //4.如果不存在，查询后，保存到Redis
-        setmeals = setmealService.listSetmeals(categoryId,status);
-        redisTemplate.opsForValue().set(key,setmeals,60, TimeUnit.MINUTES);
+        List<Setmeal> setmeals = setmealService.listSetmeals(categoryId,status);
         return R.success(setmeals);
     }
 

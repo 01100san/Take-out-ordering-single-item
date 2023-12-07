@@ -121,12 +121,12 @@ public class DishController {
      */
     @GetMapping("/list")
     public R<List<DishDto>> getDishOnSetmeal(Dish dish){
-        //1.设置key
+        //1.定义菜品Key
         //对用户端不同种类的菜品进行分类
         String key = "dish_"+dish.getCategoryId() + "_" +dish.getStatus();
-        //2.先从redis中获取缓存数据
+        //2.先从Redis中查询是否存在
         List<DishDto> dishDtos = (List<DishDto>) redisTemplate.opsForValue().get(key);
-        //3.如果存在，直接返回，无需查询数据库
+        //3.如果存在，直接返回
         if (dishDtos != null) {
             //设置缓存的有效期不变仍为60分钟
             redisTemplate.expire(key,60,TimeUnit.MINUTES);
